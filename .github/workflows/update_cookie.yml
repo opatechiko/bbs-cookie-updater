@@ -1,37 +1,59 @@
-name: Test GSheet Write
+name: Update Cookie
 
 on:
-  workflow_dispatch: # 手動で実行
+  workflow_dispatch:  # 手動で実行（あとでスケジュールも可能）
+  schedule:
+    - cron: "0 */3 * * *"  # 3時間ごとに実行したい場合
 
 jobs:
-  test-write:
+  update-cookie:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          pip install gspread google-auth
+          pip install gspread google-auth selenium webdriver-manager
 
-      - name: Test writing to Google Sheets
+      - name: Update cookie and write to Google Sheets
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
           python - <<'EOF'
+          import os
           import json
+          import time
           import gspread
           from google.oauth2.service_account import Credentials
+          from selenium import webdriver
+          from selenium.webdriver.chrome.service import Service
+          from selenium.webdriver.chrome.options import Options
+          from selenium.webdriver.common.by import By
+          from webdriver_manager.chrome import ChromeDriverManager
 
+          # ===============================
+          # 設定
+          # ===============================
+          BBS_URL = "https://bbs1.sekkaku.net/bbs/canada2025/"
+          USERNAME = "カナダ"
+          PASSWORD = "a"
           SPREADSHEET_NAME = "カナダ監視設定"
           WORKSHEET_NAME = "config"
           CELL_LOCATION = "B2"
 
-          creds_dict = json.loads("""${GOOGLE_CREDENTIALS}""")
+          # ===============================
+          # Google Sheets 認証
+          # ===============================
+          creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+          if not creds_json:
+              raise RuntimeError("GOOGLE_CREDENTIALS 環境変数が設定されていません")
+          creds_dict = json.loads(creds_json)
           creds = Credentials.from_service_account_info(
               creds_dict,
               scopes=[
@@ -39,11 +61,14 @@ jobs:
                   "https://www.googleapis.com/auth/drive"
               ]
           )
-
           gc = gspread.authorize(creds)
           ws = gc.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
-          print(f"✅ Connected to sheet: {ws.title}")
+          print(f"✅ Connected to Google Sheets: {ws.title}")
 
-          ws.update(CELL_LOCATION, "TEST COOKIE")
-          print(f"✅ Test write completed: {CELL_LOCATION} updated to 'TEST COOKIE'")
-          EOF
+          # ===============================
+          # Chrome 設定
+          # ===============================
+          chrome_options = Options()
+          chrome_options.add_argument("--headless=new")
+          chrome_options.add_argument("--no-sandbox")
+          chrome_options.add_argum
