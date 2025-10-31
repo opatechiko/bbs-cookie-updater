@@ -86,15 +86,14 @@ try:
     print(f"🍪 Cookie: {cookie_str}")
 
     # ===============================
-    # Google Sheetsへ書き込み
+    # Google Sheetsへ書き込み（テスト）
     # ===============================
-     print(f"Updating sheet {SPREADSHEET_NAME}, sheet {WORKSHEET_NAME}, cell {CELL_LOCATION}...")
-ws.update(CELL_LOCATION, "TEST COOKIE")
-print("✅ Test write completed")
+    print(f"Updating sheet {SPREADSHEET_NAME}, sheet {WORKSHEET_NAME}, cell {CELL_LOCATION}...")
+    ws.update(CELL_LOCATION, "TEST COOKIE")
+    print("✅ Test write completed")
 
 except Exception as e:
     print(f"❌ Error: {e}")
 finally:
     driver.quit()
     print("🧹 Chrome closed.")
-
