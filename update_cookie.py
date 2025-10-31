@@ -33,7 +33,10 @@ if not credentials_json:
 creds_dict = json.loads(credentials_json)
 creds = Credentials.from_service_account_info(
     creds_dict,
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    scopes=[
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
 )
 
 gc = gspread.authorize(creds)
