@@ -85,6 +85,10 @@ try:
     cookie_str = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
     print(f"🍪 Cookie: {cookie_str}")
 
+    print(f"Updating sheet {SPREADSHEET_NAME}, sheet {WORKSHEET_NAME}, cell {CELL_LOCATION}...")
+ws.update(CELL_LOCATION, "TEST COOKIE")
+print("✅ Test write completed")
+
     # ===============================
     # Google Sheetsへ書き込み
     # ===============================
