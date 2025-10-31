@@ -1,28 +1,49 @@
-name: Update BBS Cookie
+name: Test GSheet Write
 
 on:
-  schedule:
-    - cron: "0 */3 * * *"   # 3時間ごとに自動実行
-  workflow_dispatch:         # 手動実行も可能
+  workflow_dispatch: # 手動で実行
 
 jobs:
-  update-cookie:
+  test-write:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install gspread google-auth
 
-      - name: Run cookie updater
-        run: python update_cookie.py
+      - name: Test writing to Google Sheets
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          python - <<'EOF'
+          import json
+          import gspread
+          from google.oauth2.service_account import Credentials
 
+          SPREADSHEET_NAME = "カナダ監視設定"
+          WORKSHEET_NAME = "config"
+          CELL_LOCATION = "B2"
+
+          creds_dict = json.loads("""${GOOGLE_CREDENTIALS}""")
+          creds = Credentials.from_service_account_info(
+              creds_dict,
+              scopes=[
+                  "https://www.googleapis.com/auth/spreadsheets",
+                  "https://www.googleapis.com/auth/drive"
+              ]
+          )
+
+          gc = gspread.authorize(creds)
+          ws = gc.open(SPREADSHEET_NAME).worksheet(WORKSHEET_NAME)
+          print(f"✅ Connected to sheet: {ws.title}")
+
+          ws.update(CELL_LOCATION, "TEST COOKIE")
+          print(f"✅ Test write completed: {CELL_LOCATION} updated to 'TEST COOKIE'")
+          EOF
